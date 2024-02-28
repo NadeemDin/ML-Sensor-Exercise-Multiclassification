@@ -23,7 +23,7 @@ The Metamotion sensor provides comprehensive data, including gyroscope, accelero
         - [Extracting information from filenames](#extracting-information-from-filenames)
         - [Dataframe creation](#dataframe-creation)
         - [Formatting, pruning and merging dataframes](#formatting-pruning-and-merging-dataframes)
-        - [Resampling data](#resampling-data)
+        - [Resampling Time-Series data](#resampling-time-series-data)
         - [Exporting data_resampled dataframe to .pkl](#exporting-data_resampled-dataframe-to-pkl)
 
 
@@ -52,7 +52,7 @@ We will be using supervised learning techniques, as we have both structured and 
 ## Processing Raw Data:
 filepath : `src/data/make_dataset.py`
 
-#### Imports:
+### Imports:
 
 ```
 import pandas as pd
@@ -60,7 +60,7 @@ from glob import glob
 import re
 ```
 
-#### Script
+### Script
 ```
 files = glob("../../data/raw/MetaMotion/*.csv")
 
@@ -175,8 +175,8 @@ data_resampled["set"] = data_resampled["set"].astype("int")
 data_resampled.to_pickle("../../data/interim/01_data_processed.pkl")
 ```
 
-### Script Explained:
-#### Extracting information from filenames:
+## Script Explained:
+### Extracting information from filenames:
 
 The gyroscope and accelerometer raw data files within the MetaMotion folder are named as follows:
 
@@ -219,7 +219,7 @@ The *re* regular expressions module was used to remove the `_MetaWear_` and any 
 ```
 `participant`, `exercise`, `category` have been extracted.
 
-#### Dataframe creation:
+### Dataframe creation:
 
 By reading the file into a dataframe we can then create appropriately named columns to store the extracted variables:
 
@@ -257,7 +257,7 @@ Throughout the loop iterating over all files, these two dataframes will continuo
         gyr_df = pd.concat([gyr_df, df])
 ```
 
-#### Formatting, pruning and merging dataframes:
+### Formatting, pruning and merging dataframes:
 
 Creating a new `epoch (ms)` column, assigning as the index and converting to datetime in the units 'ms'.
 
@@ -299,7 +299,7 @@ merged_df.columns = [
 ]
 ```
 
-#### Resampling data:
+### Resampling Time-Series data:
 After merging our dataframes, we observe that numerous rows exclusively contain gyroscope data, others exclusively accelerometer data, while only a few include both.
 
 This disparity arises from the gyroscope sensor's higher recording frequency compared to the accelerometer sensor. Consequently, instances of both sensors capturing data simultaneously are rare.
@@ -340,7 +340,7 @@ data_resampled = pd.concat([df.resample(rule="200ms").apply(aggregation_method).
 data_resampled["set"] = data_resampled["set"].astype("int")
 ```
 
-#### Exporting `data_resampled` dataframe to .pkl:
+### Exporting `data_resampled` dataframe to .pkl:
 
 Exporting data to a pickle file is a versatile and efficient solution for storing and exchanging serialized data in Python, offering advantages in terms of serialization efficiency, data preservation, compatibility, ease of use, and support for compression.
 
