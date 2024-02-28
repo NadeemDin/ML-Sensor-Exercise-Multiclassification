@@ -17,9 +17,9 @@ The Metamotion sensor provides comprehensive data, including gyroscope, accelero
 3. [Python Scripts](#python-scripts)
 4. [Machine Learning Model](#machine-learning-model)
 5. [Processing Raw Data](#processing-raw-data)
-     - [Script Explained](#script-explained)
-        - [Imports](#imports)
-        - [Script](#script)
+     - [Imports](#imports)
+     - [Script](#script)
+     - [make_dataset.py Script Explained:](#make_datasetpy-script-explained)        
         - [Extracting information from filenames](#extracting-information-from-filenames)
         - [Dataframe creation](#dataframe-creation)
         - [Formatting, pruning and merging dataframes](#formatting-pruning-and-merging-dataframes)
@@ -60,7 +60,7 @@ from glob import glob
 import re
 ```
 
-### Script
+### Script:
 ```
 files = glob("../../data/raw/MetaMotion/*.csv")
 
@@ -175,7 +175,7 @@ data_resampled["set"] = data_resampled["set"].astype("int")
 data_resampled.to_pickle("../../data/interim/01_data_processed.pkl")
 ```
 
-## Script Explained:
+## `make_dataset.py` Script Explained:
 ### Extracting information from filenames:
 
 The gyroscope and accelerometer raw data files within the MetaMotion folder are named as follows:
