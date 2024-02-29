@@ -127,8 +127,8 @@ merged_df.columns = [
     "gyr_x",
     "gyr_y",
     "gyr_z",
+    "participant",
     "label",
-    "exercise",
     "category",
     "set",
 ]
@@ -149,8 +149,8 @@ aggregation_method = {
     "gyr_x": "mean",
     "gyr_y": "mean",
     "gyr_z": "mean",
+    "participant": "last",
     "label": "last",
-    "exercise": "last",
     "category": "last",
     "set": "last",
 }
@@ -347,3 +347,4 @@ Exporting data to a pickle file is a versatile and efficient solution for storin
 ```
 data_resampled.to_pickle("../../data/interim/01_data_processed.pkl")
 ```
+## Data Visualization
