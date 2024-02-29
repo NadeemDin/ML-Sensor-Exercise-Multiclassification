@@ -259,7 +259,7 @@ Throughout the loop iterating over all files, these two dataframes will continuo
 
 ### Formatting, pruning and merging dataframes:
 
-Creating a new `epoch (ms)` column, assigning as the index and converting to datetime in the units 'ms'.
+Creating a new `epoch (ms)` column, assigning as the index and converting from Unix to datetime in the units 'ms'.
 
 ```
 acc_df.index = pd.to_datetime(acc_df["epoch (ms)"], unit="ms")
