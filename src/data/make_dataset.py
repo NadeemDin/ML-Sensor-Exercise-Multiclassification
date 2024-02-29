@@ -186,8 +186,8 @@ merged_df.columns = [
     "gyr_x",
     "gyr_y",
     "gyr_z",
+    "participant",
     "label",
-    "exercise",
     "category",
     "set",
 ]
@@ -208,8 +208,8 @@ aggregation_method = {
     "gyr_x": "mean",
     "gyr_y": "mean",
     "gyr_z": "mean",
+    "participant": "last",
     "label": "last",
-    "exercise": "last",
     "category": "last",
     "set": "last",
 }
