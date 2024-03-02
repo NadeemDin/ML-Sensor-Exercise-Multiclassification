@@ -202,8 +202,8 @@ merged_df.columns = [
 # equation: time = 1/frequency(Hz)
 
 aggregation_method = {
-    "acc_y": "mean",
     "acc_x": "mean",
+    "acc_y": "mean",
     "acc_z": "mean",
     "gyr_x": "mean",
     "gyr_y": "mean",
