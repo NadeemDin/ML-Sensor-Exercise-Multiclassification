@@ -49,133 +49,9 @@ Gyroscope:        25.000Hz
 ## Machine Learning Model
 We will be using supervised learning techniques, as we have both structured and unstructured data. The goal is to create a multiclass classification model to predict which exercise is being done or if the participant is resting. 
 
-## Processing Raw Data:
+## 1.  Processing Raw Data:  `make_dataset.py` 
 filepath : `src/data/make_dataset.py`
 
-### Imports:
-
-```
-import pandas as pd
-from glob import glob
-import re
-```
-
-### Script:
-```
-files = glob("../../data/raw/MetaMotion/*.csv")
-
-# --------------------------------------------------------------
-# Function to read data from all files in MetaMotion folder.
-# --------------------------------------------------------------
-
-def read_data_from_files(files):
-
-    acc_df = pd.DataFrame()  
-    gyr_df = pd.DataFrame()
-
-    acc_set = 1  
-    gyr_set = 1
-
-    for file in files:
-        filename = file.replace("\\", "/")  
-        participant = filename.split("/")[-1].split("-")[0]  
-        exercise = filename.split("/")[-1].split("-")[1]  
-        category = filename.split("/")[-1].split("-")[2]  
-        category = re.sub(r"\d+|_MetaWear_", "", category)
-        
-        df = pd.read_csv(file)
-        df["participant"] = participant
-        df["exercise"] = exercise
-        df["category"] = category
-
-        if "Accelerometer" in file:
-            df["set"] = acc_set
-            acc_set += 1
-            acc_df = pd.concat([acc_df, df])  
-
-        if "Gyroscope" in file:
-            df["set"] = gyr_set
-            gyr_set += 1
-            gyr_df = pd.concat([gyr_df, df])  
-
-    acc_df.index = pd.to_datetime(acc_df["epoch (ms)"], unit="ms")
-    gyr_df.index = pd.to_datetime(gyr_df["epoch (ms)"], unit="ms")
-
-    del acc_df["epoch (ms)"]
-    del acc_df["time (01:00)"]
-    del acc_df["elapsed (s)"]
-
-    del gyr_df["epoch (ms)"]
-    del gyr_df["time (01:00)"]
-    del gyr_df["elapsed (s)"]
-
-    return acc_df, gyr_df
-
-
-acc_df, gyr_df = read_data_from_files(files)
-
-# --------------------------------------------------------------
-# Merging datasets
-# --------------------------------------------------------------
-
-merged_df = pd.concat([acc_df.iloc[:, :3], gyr_df], axis=1)
-
-merged_df.columns = [
-    "acc_x",
-    "acc_y",
-    "acc_z",
-    "gyr_x",
-    "gyr_y",
-    "gyr_z",
-    "participant",
-    "label",
-    "category",
-    "set",
-]
-
-# --------------------------------------------------------------
-# Resample data (frequency conversion)
-# --------------------------------------------------------------
-
-# Accelerometer:    12.500HZ
-# Gyroscope:        25.000Hz
-
-# equation: time = 1/frequency(Hz)
-
-aggregation_method = {
-    "acc_x": "mean",
-    "acc_y": "mean",
-    "acc_z": "mean",
-    "gyr_x": "mean",
-    "gyr_y": "mean",
-    "gyr_z": "mean",
-    "participant": "last",
-    "label": "last",
-    "category": "last",
-    "set": "last",
-}
-
-
-# merged_df[:100].resample(rule="200ms").apply(aggregation_method)
-"""the above line is fine for small amounts of rows but if applied to the whole merged_df would create an unreasonable amount of null rows as we are resampling between time series data spanning a week"""
-
-days = [g for n, g in merged_df.groupby(pd.Grouper(freq="D"))]
-
-data_resampled = pd.concat(
-    [df.resample(rule="200ms").apply(aggregation_method).dropna() for df in days]
-)
-
-data_resampled.info()
-data_resampled["set"] = data_resampled["set"].astype("int")
-
-# --------------------------------------------------------------
-# Export dataset
-# --------------------------------------------------------------
-
-data_resampled.to_pickle("../../data/interim/01_data_processed.pkl")
-```
-
-## `make_dataset.py` Script Explained:
 ### Extracting information from filenames:
 
 The gyroscope and accelerometer raw data files within the MetaMotion folder are named as follows:
@@ -348,3 +224,30 @@ Exporting data to a pickle file is a versatile and efficient solution for storin
 data_resampled.to_pickle("../../data/interim/01_data_processed.pkl")
 ```
 ## Data Visualization
+filepath : `src\visualization\visualize.py`
+
+In this section, we explore visualizations of the sensor data to gain insights into exercise patterns and participant behavior.
+
+### Comparing Medium vs. Heavy Sets
+We compare medium vs. heavy sets for a specific exercise, such as squats:
+
+```category_df = df.query("label == 'squat'").query("participant == 'A'").reset_index()
+fig, ax = plt.subplots()
+category_df.groupby(['category'])['acc_y'].plot()
+ax.set_ylabel("acc_y")
+ax.set_xlabel ("samples")
+plt.legend()
+plt.savefig("../../reports/figures/Squat_A_Heavy_Medium.png")
+```
+![Sample Image](../../reports/figures/Squat_A_Heavy_Medium.png "Sample Title")
+
+
+
+
+
+## Outlier Detection & Management
+
+## Feature engineering:
+Process of transforming raw data into more meaningful extra features which we can use in the ML model.
+
+### Low pass filter and Principal component analysis
