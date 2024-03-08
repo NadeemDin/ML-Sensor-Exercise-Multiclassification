@@ -82,14 +82,40 @@ for col in predictor_columns:
 # --------------------------------------------------------------
 # Principal component analysis PCA
 # --------------------------------------------------------------
+df_pca = df_lowpass.copy()
+PCA = PrincipalComponentAnalysis()
 
+pca_values = PCA.determine_pc_explained_variance(df_pca, predictor_columns)
 
+# elbow method to find optimal component number (finds 3)
 
+plt.figure(figsize = (10,10))
+plt.plot(range(1, len(predictor_columns) + 1), pca_values)
+plt.xlabel("principal component number")
+plt.ylabel("explained variance")
+plt.show()
+
+df_pca = PCA.apply_pca(df_pca,predictor_columns,3)
+
+#visualize
+subset = df_pca[df_pca["set"] == 35]
+subset[["pca_1", "pca_2", "pca_3"]].plot()
 
 # --------------------------------------------------------------
 # Sum of squares attributes
 # --------------------------------------------------------------
 
+df_squared = df_pca.copy()
+
+acc_r = df_squared["acc_x"] ** 2 + df_squared["acc_y"] ** 2 + df_squared["acc_z"] ** 2 
+gyr_r = df_squared["gyr_x"] ** 2 + df_squared["gyr_y"] ** 2 + df_squared["gyr_z"] ** 2 
+
+df_squared["acc_r"] = np.sqrt(acc_r)
+df_squared["gyr_r"] = np.sqrt(gyr_r)
+
+#visualise
+subset = df_squared[df_squared["set"] == 35]
+subset[["acc_r", "gyr_r"]].plot(subplots=True)
 
 # --------------------------------------------------------------
 # Temporal abstraction
