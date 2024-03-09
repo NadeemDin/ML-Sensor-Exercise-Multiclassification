@@ -11,7 +11,7 @@ The Metamotion sensor provides comprehensive data, including gyroscope, accelero
 
 ![Metamotion Sensor](https://mbientlab.com/wp-content/uploads/2021/02/Board4-updated.png)
 
-## Contents:
+## Contents: DOESNT WORK
 1. [Overview](#overview)
 2. [Data Collection](#data-collection)
 3. [Python Scripts](#python-scripts)
@@ -49,8 +49,8 @@ Gyroscope:        25.000Hz
 ## Machine Learning Model
 We will be using supervised learning techniques, as we have both structured and unstructured data. The goal is to create a multiclass classification model to predict which exercise is being done or if the participant is resting. 
 
-## 1.  Processing Raw Data:  `make_dataset.py` 
-filepath : `src/data/make_dataset.py`
+## Data Extraction & Transformation:  `make_dataset.py` 
+<i>filepath : `src/data/make_dataset.py`</i>
 
 ### Extracting information from filenames:
 
@@ -226,7 +226,7 @@ data_resampled.to_pickle("../../data/interim/01_data_processed.pkl")
 ## Data Visualization
 filepath : `src\visualization\visualize.py`
 
-In this section, we explore visualizations of the sensor data to gain insights into exercise patterns and participant behavior.
+In this section, we explore sensor data visualizations to gain crucial insights into exercise patterns and participant behaviour, enhancing our machine learning model. These visuals offer a comprehensive understanding of the data dynamics,
 
 ### Comparing Medium vs. Heavy Sets
 We compare medium vs. heavy sets for a specific exercise, such as squats:
@@ -239,13 +239,69 @@ ax.set_xlabel ("samples")
 plt.legend()
 plt.savefig("../../reports/figures/Squat_A_Heavy_Medium.png")
 ```
-![Sample Image](../../reports/figures/Squat_A_Heavy_Medium.png "Sample Title")
+Resulting plot:
 
 
 
+![Squat A Heavy Medium](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/Squat_A_Heavy_Medium.png)
+<small><i>Figure 1: Participant A Squats - Heavy/Medium - No of Samples vs Accelerometer (y-axis)</i></small>
 
+Figure 1 indicates that Participant A exhibited reduced acceleration along the y-axis when training with a heavy weight compared to a medium weight. While this outcome was anticipated, it's reassuring to see that our data aligns with this expectation.
+
+### Comparison of Accelerometer and Gyroscope measurements per participant per exercise:
+
+Here's where things get interesting:
+
+
+```
+for label in labels:
+    for participant in participants:
+        all_axis_df = df.query(f"label == '{label}'").query(f"participant == '{participant}'").reset_index()
+        if len(all_axis_df) > 0:
+            fig, ax = plt.subplots(nrows=2, sharex=True, figsize=(20,10))
+            all_axis_df[["acc_x","acc_y","acc_z"]].plot(ax=ax[0])
+            all_axis_df[["gyr_x","gyr_y","gyr_z"]].plot(ax=ax[1])
+
+            ax[0].legend(loc='upper center', bbox_to_anchor=(0.5,1.15),ncol=3,fancybox=True,shadow=True)
+            ax[1].legend(loc='upper center', bbox_to_anchor=(0.5,1.15),ncol=3,fancybox=True,shadow=True)
+            ax[1].set_xlabel('samples')
+
+            plt.savefig(f"../../reports/figures/{label.title()} ({participant}).png")
+            plt.show()
+```
+
+The for loop generates a series of figures which we can help with:
+
+Comparative Analysis: By comparing accelerometer and gyroscope data between different exercises and participants, we can identify patterns and variations in movement. This aids in selecting relevant features for the model and understanding how different factors influence the sensor data.
+
+Insights into Movement: Understanding movement patterns and characteristics helps in feature engineering. By extracting relevant features from the sensor data, we can provide the model with meaningful input that captures important aspects of exercise performance.
+
+Anomaly Detection: Detecting anomalies in the sensor data helps in data preprocessing and quality control. By identifying and addressing irregularities, we ensure that the input data for the machine learning model is clean, accurate, and representative of typical exercise performance. This enhances the model's ability to generalize and make accurate predictions.
+
+Examples:
+
+Participant B Bench:
+
+![Participant B Bench](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/Bench%20(B).png)
+
+Participant D Bench:
+
+![Participant D Bench](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/Bench%20(D).png)
 
 ## Outlier Detection & Management
+
+filepath : `src\features\remove_outliers.py`
+
+
+We visualise the outliers from our `data/interim/01_data_processed.pkl` file, using box plots and histograms to understand their distribution across different exercises and participants.
+
+To detect outliers, we implement three different methods: interquartile range (IQR), Chauvenet's criterion, and Local Outlier Factor (LOF). After evaluating these methods, we choose Chauvenet's criterion for outlier detection due to its assumption of normal distribution, which aligns well with our data characteristics.
+
+Chauvenet's criterion identifies outliers based on the assumption of a normal distribution, making it suitable for our sensor data analysis. We apply this method to each sensor's data columns, marking outliers and subsequently replacing them with NaN values. This approach ensures that the machine learning model isn't skewed by anomalous data points, leading to more robust and accurate predictions.
+
+Finally, we export the cleaned dataset with outliers removed, ready for further preprocessing and model development.
+
+
 
 ## Feature engineering:
 Process of transforming raw data into more meaningful extra features which we can use in the ML model.
