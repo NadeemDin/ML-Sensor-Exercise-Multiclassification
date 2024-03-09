@@ -11,20 +11,14 @@ The Metamotion sensor provides comprehensive data, including gyroscope, accelero
 
 ![Metamotion Sensor](https://mbientlab.com/wp-content/uploads/2021/02/Board4-updated.png)
 
-## Contents: DOESNT WORK
+## Contents
 1. [Overview](#overview)
 2. [Data Collection](#data-collection)
 3. [Python Scripts](#python-scripts)
-4. [Machine Learning Model](#machine-learning-model)
-5. [Processing Raw Data](#processing-raw-data)
-     - [Imports](#imports)
-     - [Script](#script)
-     - [make_dataset.py Script Explained:](#make_datasetpy-script-explained)        
-        - [Extracting information from filenames](#extracting-information-from-filenames)
-        - [Dataframe creation](#dataframe-creation)
-        - [Formatting, pruning and merging dataframes](#formatting-pruning-and-merging-dataframes)
-        - [Resampling Time-Series data](#resampling-time-series-data)
-        - [Exporting data_resampled dataframe to .pkl](#exporting-data_resampled-dataframe-to-pkl)
+4. [Data Visualization](#data-visualization)
+5. [Outlier Detection & Management](#outlier-detection--management)
+6. [Feature Engineering](#feature-engineering)
+
 
 
 ## Data Collection
@@ -44,7 +38,12 @@ Gyroscope:        25.000Hz
 - Barbell Row
 
 ## Python Scripts
-`make_dataset.py` : ('src/data') : contains code used to extract and transform the original raw data.
+- `make_dataset.py` : (`src/data`) - Contains code used to extract and transform the original raw data.
+- `visualize.py` : (`src/visualization`) - Includes code for generating various visualizations from the preprocessed sensor data.
+- `remove_outliers.py` : (`src/features`) - Implements outlier detection methods and removes outliers from the dataset.
+- `build_features.py` : (`src/features`) - Implements feature engineering steps such as dealing with missing values, calculating set duration, applying a Butterworth lowpass filter, conducting principal component analysis (PCA), computing sum of squares attributes, and potentially other feature engineering tasks such as temporal abstraction, frequency features, dealing with overlapping windows, clustering, and exporting the dataset.
+- `DataTransformation.py` : (`src/features`) - Provides functions and classes for data transformation tasks such as low-pass filtering and principal component analysis.
+
 
 ## Machine Learning Model
 We will be using supervised learning techniques, as we have both structured and unstructured data. The goal is to create a multiclass classification model to predict which exercise is being done or if the participant is resting. 
@@ -325,10 +324,10 @@ predictor_columns = list(df.columns[:6])
 Interpolation/Imputation Visualized:
 
 ![Set 35 gyr_y plot (before imputation)](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/Set%2035%20gyr_y%20plot%20(before%20imputation).png)
-<i>Figure 5: gyr_y data plot for set 35, pre interpolation.</i>
+<i>Figure 5: gyr_y data plot for set 35 Overhead Press, pre interpolation.</i>
 
 ![Set 35 gyr_y plot (after imputation)](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/Set%2035%20gyr_y%20plot%20(after%20imputation).png)
-<i>Figure 6: gyr_y data plot for set 35, post interpolation.</i>
+<i>Figure 6: gyr_y data plot for set 35 Overhead Press, post interpolation.</i>
 
 ### Calculating Set duration: 
 The duration of each exercise set is calculated to provide insights into the length of time spent on each exercise.
@@ -411,22 +410,24 @@ plt.show()
 ![elbow method](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/elbow_method.png)
 <i>Figure 8: Plot identifies the optimal number of components as 3.</i>
 
-Subsequently, PCA is applied to transform the dataset into a lower-dimensional space while preserving most of its variability.
-
 ```
 df_pca = PCA.apply_pca(df_pca,predictor_columns,3)
 ```
 
-This transformation allows for the representation of the data along orthogonal directions, facilitating efficient computation and visualization. Finally, the transformed data is visualized in <i>Figure 9</i> to understand the patterns and structure captured by the principal components, aiding in further analysis and interpretation of the dataset.
+Subsequently, PCA is applied to transform the dataset into a lower-dimensional space while preserving most of its variability.
 
 ```
 subset = df_pca[df_pca["set"] == 35]
 subset[["pca_1", "pca_2", "pca_3"]].plot()
 ```
 
-![PCA](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/PCA.png)
-<i>Figure 9: Visualization of Principal Components for Set 35.</i>
+This transformation allows for the representation of the data along orthogonal directions, facilitating efficient computation and visualization. Finally, the transformed data is visualized in <i>Figure 9 and 10</i> to understand the patterns and structure captured by the principal components, aiding in further analysis and interpretation of the dataset.
 
+![PCA](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/PCA.png)
+<i>Figure 9: Visualization of Principal Components for Set 35, Medium Overhead Press.</i>
+
+![PCA Heavy Bench](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/PCA_Heavy_Bench.png)
+<i>Figure 10: Visualization of Principal Components for Set 40, Heavy Bench.</i>
 
 
 
