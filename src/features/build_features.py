@@ -48,8 +48,8 @@ for s in df["set"].unique():
     df.loc[(df["set"] == s), "duration"] = duration.seconds
     
 duration_df = df.groupby(["category"])["duration"].mean()
-duration_df.iloc[0] / 5 #5 reps
-duration_df.iloc[1] / 10 #10 reps
+duration_df.iloc[0] / 5 #5 heavy reps
+duration_df.iloc[1] / 10 #10 medium reps
 
 # --------------------------------------------------------------
 # Butterworth lowpass filter
@@ -114,7 +114,7 @@ df_squared["acc_r"] = np.sqrt(acc_r)
 df_squared["gyr_r"] = np.sqrt(gyr_r)
 
 #visualise
-subset = df_squared[df_squared["set"] == 35]
+subset = df_squared[df_squared["set"] == 40]
 subset[["acc_r", "gyr_r"]].plot(subplots=True)
 
 # --------------------------------------------------------------

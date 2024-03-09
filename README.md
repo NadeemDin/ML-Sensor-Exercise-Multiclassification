@@ -429,7 +429,26 @@ This transformation allows for the representation of the data along orthogonal d
 ![PCA Heavy Bench](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/PCA_Heavy_Bench.png)
 <i>Figure 10: Visualization of Principal Components for Set 40, Heavy Bench.</i>
 
+### The Sum of Squares Attributes:
 
+```
+df_squared = df_pca.copy()
 
+acc_r = df_squared["acc_x"] ** 2 + df_squared["acc_y"] ** 2 + df_squared["acc_z"] ** 2 
+gyr_r = df_squared["gyr_x"] ** 2 + df_squared["gyr_y"] ** 2 + df_squared["gyr_z"] ** 2 
 
+df_squared["acc_r"] = np.sqrt(acc_r)
+df_squared["gyr_r"] = np.sqrt(gyr_r)
+
+```
+
+The sum of squares attributes involves computing the magnitude of acceleration (`acc_r`) and angular velocity (`gyr_r`) vectors by summing the squares of their individual components and then taking the square root of the sum.
+
+By computing these sums of squares attributes, we obtain scalar values representing the overall intensity of acceleration and angular velocity experienced by the sensor, irrespective of direction. These attributes provide a concise representation of the sensor data's dynamics, facilitating further analysis, visualization and feature extraction for machine learning tasks.
+
+![SOS S35](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/SOS_S35.png)
+<i>Figure 11: Visualization of the magnitude of acceleration (`acc_r`) and angular velocity (`gyr_r`) vectors for Set 35, Medium Overhead Press.</i>
+
+![SOS S40](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/SOS_S40.png)
+<i>Figure 12: Visualization of the magnitude of acceleration (`acc_r`) and angular velocity (`gyr_r`) vectors for Set 40, Heavy Bench.</i>
 
