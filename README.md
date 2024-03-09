@@ -48,8 +48,8 @@ Gyroscope:        25.000Hz
 ## Machine Learning Model
 We will be using supervised learning techniques, as we have both structured and unstructured data. The goal is to create a multiclass classification model to predict which exercise is being done or if the participant is resting. 
 
-## Data Extraction & Transformation:  `make_dataset.py` 
-<i>filepath : `src/data/make_dataset.py`</i>
+## Data Extraction & Transformation:  
+<i>filepath : `src\data\make_dataset.py`</i>
 
 ### Extracting information from filenames:
 
