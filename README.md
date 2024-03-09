@@ -240,9 +240,6 @@ plt.legend()
 plt.savefig("../../reports/figures/Squat_A_Heavy_Medium.png")
 ```
 Resulting plot:
-
-
-
 ![Squat A Heavy Medium](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/Squat_A_Heavy_Medium.png)
 <small><i>Figure 1: Participant A Squats - Heavy/Medium - No of Samples vs Accelerometer (y-axis)</i></small>
 
@@ -278,32 +275,160 @@ Insights into Movement: Understanding movement patterns and characteristics help
 
 Anomaly Detection: Detecting anomalies in the sensor data helps in data preprocessing and quality control. By identifying and addressing irregularities, we ensure that the input data for the machine learning model is clean, accurate, and representative of typical exercise performance. This enhances the model's ability to generalize and make accurate predictions.
 
-Examples:
-
-Participant B Bench:
-
 ![Participant B Bench](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/Bench%20(B).png)
-
-Participant D Bench:
+<small><i>Figure 2: Participant B Bench Press - plot displaying accelerometer and gyroscope data in all three axis (x,y,z).</i></small>
 
 ![Participant D Bench](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/Bench%20(D).png)
+<small><i>Figure 3: Participant D Bench Press - plot displaying accelerometer and gyroscope data in all three axis/planes (x,y,z).</i></small>
+
+
+In both <i>Figure 2</i> and <i>Figure 3</i>, it's noticeable that despite both participants performing the same exercise, there are considerable differences in the gyroscope data and acc_y plots. These disparities may stem from variations in bench press execution, such as differences in form, rep control, and speed. However, across all Bench Plots from all participants, there's a consistent observation of minimal acceleration in the x and z plane and maximal acceleration in the y plane.
 
 ## Outlier Detection & Management
 
 filepath : `src\features\remove_outliers.py`
 
-
 We visualise the outliers from our `data/interim/01_data_processed.pkl` file, using box plots and histograms to understand their distribution across different exercises and participants.
 
-To detect outliers, we implement three different methods: interquartile range (IQR), Chauvenet's criterion, and Local Outlier Factor (LOF). After evaluating these methods, we choose Chauvenet's criterion for outlier detection due to its assumption of normal distribution, which aligns well with our data characteristics.
+To detect outliers, we implement three different methods: interquartile range (IQR), Chauvenet's criterion, and Local Outlier Factor (LOF). After evaluating these methods.
+
+![IQR](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/IQR.png)
+![Chauvenet](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/Chauvenet.png)
+![LOF](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/LOF.png)
+<small><i>Figure 4: Top (IQR Outlier Detection), Middle (Chauvenet Outlier Detection), Bottom (LOF Outlier Detection)</i></small>
+
+Opting for Chauvenet's criterion for outlier detection, we leverage its assumption of a normal distribution, which aligns well with our data characteristics. Additionally, it tends to flag fewer outliers, but those identified are more pertinent to our analysis.
 
 Chauvenet's criterion identifies outliers based on the assumption of a normal distribution, making it suitable for our sensor data analysis. We apply this method to each sensor's data columns, marking outliers and subsequently replacing them with NaN values. This approach ensures that the machine learning model isn't skewed by anomalous data points, leading to more robust and accurate predictions.
 
 Finally, we export the cleaned dataset with outliers removed, ready for further preprocessing and model development.
 
-
+see file: `data\interim\02_outliers_removed_chauvenets.pkl`
 
 ## Feature engineering:
-Process of transforming raw data into more meaningful extra features which we can use in the ML model.
+This section outlines the feature engineering pipeline used to preprocess the sensor data for exercise classification. The analysis involves various stages, including handling missing values, filtering, dimensionality reduction, and extracting relevant features.
 
-### Low pass filter and Principal component analysis
+### Dealing with missing values:
+Missing values in the dataset are handled through linear interpolation to ensure continuity in the time series data using the for loop below:
+
+```
+for col in predictor_columns:
+    df[col] = df[col].interpolate()
+```
+
+Where:
+```
+df = pd.read_pickle("../../data/interim/02_outliers_removed_chauvenets.pkl")
+
+predictor_columns = list(df.columns[:6])
+```
+Interpolation/Imputation Visualized:
+
+![Set 35 gyr_y plot (before imputation)](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/Set%2035%20gyr_y%20plot%20(before%20imputation).png)
+<i>Figure 5: gyr_y data plot for set 35, pre interpolation.</i>
+
+![Set 35 gyr_y plot (after imputation)](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/Set%2035%20gyr_y%20plot%20(after%20imputation).png)
+<i>Figure 6: gyr_y data plot for set 35, post interpolation.</i>
+
+### Calculating Set duration: 
+The duration of each exercise set is calculated to provide insights into the length of time spent on each exercise.
+
+```
+for s in df["set"].unique():
+    start = df[df["set"]== s].index[0]
+    stop = df[df["set"]== s].index[-1]
+    
+    duration = stop - start
+    df.loc[(df["set"] == s), "duration"] = duration.seconds
+    
+duration_df = df.groupby(["category"])["duration"].mean()
+duration_df.iloc[0] / 5 #5 heavy reps
+duration_df.iloc[1] / 10 #10 medium reps
+```
+
+The code above computes the duration of each exercise set by subtracting the start time from the stop time. It then calculates the average duration for each exercise category. This helps in understanding the typical time taken for sets and repetitions, facilitating performance assessment and training optimization.
+
+Returning: 
+
+```
+category
+heavy       14.743501
+medium      24.942529
+sitting     33.000000
+standing    39.000000
+Name: duration, dtype: float64
+```
+
+### Application of Butterworth Low Pass filter:
+
+```
+df_lowpass = df.copy()
+LowPass = LowPassFilter()
+
+s_freq = 1000 / 200 #200 ms : 5 instances per second
+cutoff_freq = 1.3
+
+for col in predictor_columns:
+    df_lowpass = LowPass.low_pass_filter(df_lowpass, col , s_freq,cutoff_freq, order=5)
+    df_lowpass[col] = df_lowpass[col + "_lowpass"]
+    del df_lowpass[col + "_lowpass"]
+```
+
+The code snippet provided is utilizing the LowPassFilter class from the DataTransformation module (`DataTransformation.py`) to perform the lowpass filtering operation on the accelerometer and gyroscope data.
+
+![Low Pass Filter](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/Low_Pass_Filter.png)
+<i>Figure 7: Application of Butterworth Low Pass Filter.</i>
+
+The code applies a Butterworth lowpass filter to the accelerometer and gyroscope data in order to remove high-frequency noise while preserving the underlying signal trends. 
+
+The cutoff frequency of the filter is chosen to attenuate frequencies above a certain threshold, effectively smoothing out rapid fluctuations in the data. This is particularly useful for motion sensor data, where high-frequency noise can obscure meaningful patterns and introduce inaccuracies in analysis. 
+
+The filtered data (`df_lowpass`) is then used for further analysis, ensuring that subsequent calculations and visualizations are based on a cleaner representation of the original sensor measurements.
+
+### Application of Principal Component Analysis (PCA):
+
+The application of PCA on `df_lowpass` begins with determining the explained variance for each principal component, providing insight into how much of the original data's variability is captured by each component.
+
+The code snippet below is utilizing the PrincipalComponentAnalysis class from the DataTransformation module (`DataTransformation.py`)
+
+```
+df_pca = df_lowpass.copy()
+PCA = PrincipalComponentAnalysis()
+
+pca_values = PCA.determine_pc_explained_variance(df_pca, predictor_columns)
+```
+
+Using the elbow method, the optimal number of principal components to retain is identified <i>see figure 8</i>, balancing dimensionality reduction with information retention.
+
+```
+plt.figure(figsize = (10,10))
+plt.plot(range(1, len(predictor_columns) + 1), pca_values)
+plt.xlabel("principal component number")
+plt.ylabel("explained variance")
+plt.show()
+```
+
+![elbow method](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/elbow_method.png)
+<i>Figure 8: Plot identifies the optimal number of components as 3.</i>
+
+Subsequently, PCA is applied to transform the dataset into a lower-dimensional space while preserving most of its variability.
+
+```
+df_pca = PCA.apply_pca(df_pca,predictor_columns,3)
+```
+
+This transformation allows for the representation of the data along orthogonal directions, facilitating efficient computation and visualization. Finally, the transformed data is visualized in <i>Figure 9</i> to understand the patterns and structure captured by the principal components, aiding in further analysis and interpretation of the dataset.
+
+```
+subset = df_pca[df_pca["set"] == 35]
+subset[["pca_1", "pca_2", "pca_3"]].plot()
+```
+
+![PCA](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/PCA.png)
+<i>Figure 9: Visualization of Principal Components for Set 35.</i>
+
+
+
+
+
+
