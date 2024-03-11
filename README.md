@@ -41,8 +41,9 @@ Gyroscope:        25.000Hz
 - `make_dataset.py` : (`src/data`) - Contains code used to extract and transform the original raw data.
 - `visualize.py` : (`src/visualization`) - Includes code for generating various visualizations from the preprocessed sensor data.
 - `remove_outliers.py` : (`src/features`) - Implements outlier detection methods and removes outliers from the dataset.
-- `build_features.py` : (`src/features`) - Implements feature engineering steps such as dealing with missing values, calculating set duration, applying a Butterworth lowpass filter, conducting principal component analysis (PCA), computing sum of squares attributes, and potentially other feature engineering tasks such as temporal abstraction, frequency features, dealing with overlapping windows, clustering, and exporting the dataset.
+- `build_features.py` : (`src/features`) -  Implements feature engineering steps such as handling missing values, calculating set duration, applying a Butterworth lowpass filter, conducting principal component analysis (PCA), computing sum of squares attributes, and performing temporal abstraction.
 - `DataTransformation.py` : (`src/features`) - Provides functions and classes for data transformation tasks such as low-pass filtering and principal component analysis.
+- `TemporalAbstraction.py` : (`src/features`) - Implements functions and classes for temporal abstraction tasks, facilitating the computation of rolling averages (means) and standard deviations for sensor measurements over specified windows.
 
 
 ## Machine Learning Model
@@ -421,7 +422,9 @@ subset = df_pca[df_pca["set"] == 35]
 subset[["pca_1", "pca_2", "pca_3"]].plot()
 ```
 
-This transformation allows for the representation of the data along orthogonal directions, facilitating efficient computation and visualization. Finally, the transformed data is visualized in <i>Figure 9 and 10</i> to understand the patterns and structure captured by the principal components, aiding in further analysis and interpretation of the dataset.
+This transformation allows for the representation of the data along orthogonal directions, facilitating efficient computation and visualization. 
+
+The transformed data is visualized in <i>Figure 9 and 10</i> to understand the patterns and structure captured by the principal components, aiding in further analysis and interpretation of the dataset.
 
 ![PCA](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/PCA.png)
 <i>Figure 9: Visualization of Principal Components for Set 35, Medium Overhead Press.</i>
@@ -452,3 +455,41 @@ By computing these sums of squares attributes, we obtain scalar values represent
 ![SOS S40](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/SOS_S40.png)
 <i>Figure 12: Visualization of the magnitude of acceleration (`acc_r`) and angular velocity (`gyr_r`) vectors for Set 40, Heavy Bench.</i>
 
+### Temporal Abstraction:
+
+The benefits of employing temporal abstraction techniques, such as computing rolling averages and standard deviations, include capturing temporal trends, smoothing noisy data, highlighting variability, facilitating feature engineering, and aiding interpretability. This approach may introduce missing data due to windowing, but it's considered an acceptable trade-off because it helps reveal underlying patterns and trends in the data, which can lead to better insights and more accurate modeling.
+
+```
+df_temporal = df_squared.copy()
+NumAbstract = NumericalAbstraction()
+
+predictor_columns = predictor_columns + ["acc_r","gyr_r"]
+ws = int(1000 / 200) #window size of 5 to get a window of 1 second
+df_temporal_list = []
+
+for s in df_temporal["set"].unique():
+    subset = df_temporal[df_temporal["set"] == s].copy()
+    for col in predictor_columns:
+        subset = NumAbstract.abstract_numerical(subset, [col], ws, "mean")
+        subset = NumAbstract.abstract_numerical(subset, [col], ws, "std")
+    df_temporal_list.append(subset)
+    
+df_temporal = pd.concat(df_temporal_list)
+
+subset[["acc_y","acc_y_temp_mean_ws_5", "acc_y_temp_std_ws_5"]].plot()
+subset[["gyr_y","gyr_y_temp_mean_ws_5", "gyr_y_temp_std_ws_5"]].plot()
+```
+
+The code segment computes rolling averages (means) and standard deviations for sensor measurement columns in the dataset df_squared using temporal abstraction. 
+
+It begins by creating a copy of the dataset and initializing the `NumericalAbstraction` class located in `TemporalAbstraction.py`. The window size for rolling computations is determined based on the data's sampling frequency (five samples in one second).
+
+Then, for each unique set in the dataset, the code calculates rolling mean and standard deviation for each sensor measurement column within the set.
+
+These values are stored in new columns added to the dataset. Due to the window size of 5, the initial four values in each rolling computation are NaN because there isn't enough preceding data.
+
+Finally, a subset of the dataset is chosen for visualization, plotting the original sensor measurements alongside their rolling mean and standard deviation values to reveal temporal trends and variability.
+
+![temp medium row 90 acc y](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/temp_medium_row_90_acc_y.png)
+![temp medium row 90 gyr y](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/temp_medium_row_90_gyr_y.png)
+<i>Figure 13: Temporal Trends in Sensor Measurements with Rolling Averages and Standard Deviations</i>
