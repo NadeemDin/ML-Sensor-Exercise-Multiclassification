@@ -44,6 +44,7 @@ Gyroscope:        25.000Hz
 - `build_features.py` : (`src/features`) -  Implements feature engineering steps such as handling missing values, calculating set duration, applying a Butterworth lowpass filter, conducting principal component analysis (PCA), computing sum of squares attributes, and performing temporal abstraction.
 - `DataTransformation.py` : (`src/features`) - Provides functions and classes for data transformation tasks such as low-pass filtering and principal component analysis.
 - `TemporalAbstraction.py` : (`src/features`) - Implements functions and classes for temporal abstraction tasks, facilitating the computation of rolling averages (means) and standard deviations for sensor measurements over specified windows.
+- `FrequencyAbstraction.py` : (`src/features`) - Performs Fourier transformations on the data to identify frequencies and filter noise, adding frequency-related features to the dataset for further analysis and modeling tasks.
 
 
 ## Machine Learning Model
@@ -457,7 +458,11 @@ By computing these sums of squares attributes, we obtain scalar values represent
 
 ### Temporal Abstraction:
 
-The benefits of employing temporal abstraction techniques, such as computing rolling averages and standard deviations, include capturing temporal trends, smoothing noisy data, highlighting variability, facilitating feature engineering, and aiding interpretability. This approach may introduce missing data due to windowing, but it's considered an acceptable trade-off because it helps reveal underlying patterns and trends in the data, which can lead to better insights and more accurate modeling.
+The benefits of employing temporal abstraction techniques, such as computing rolling averages and standard deviations, include capturing temporal trends, smoothing noisy data, highlighting variability, facilitating feature engineering, and aiding interpretability. 
+
+This step is crucial for understanding how sensor measurements evolve over time, providing insights into patterns and behaviors that may be indicative of different exercises or states.
+
+This approach may introduce missing data due to windowing, but it's considered an acceptable trade-off because it helps reveal underlying patterns and trends in the data, which can lead to better insights and more accurate modeling.
 
 ```
 df_temporal = df_squared.copy()
@@ -493,3 +498,49 @@ Finally, a subset of the dataset is chosen for visualization, plotting the origi
 ![temp medium row 90 acc y](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/temp_medium_row_90_acc_y.png)
 ![temp medium row 90 gyr y](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/temp_medium_row_90_gyr_y.png)
 <i>Figure 13: Temporal Trends in Sensor Measurements with Rolling Averages and Standard Deviations</i>
+
+### Discrete Fourier Transformations:
+
+The `FrequencyAbstraction.py` module contains the following functions:
+
+`find_fft_transformation` Function: This function computes the Fourier transformation of the input data utilizing the Fast Fourier Transform (FFT) algorithm. It returns the amplitudes of both the real and imaginary components of the transformation.
+
+`abstract_frequency` Function: This function derives frequency features over a specified window size for the provided columns in the dataset. It calculates several frequency-related metrics for each column, including maximum frequency, frequency-weighted value, and Power Spectral Entropy (PSE).
+
+These transformations enable the analysis of periodic patterns and frequencies present in the sensor data. 
+
+By abstracting frequency-domain features such as maximum frequency, frequency-weighted values, and power spectral entropy, the code aims to capture underlying rhythmic patterns or oscillations within the sensor signals. 
+
+- Max Frequency: Identifies the dominant frequency component within the specified window.
+
+- Frequency Weighted: Computes the weighted average of frequencies based on their corresponding amplitudes.
+
+- Power Spectral Entropy (PSE): Measures the complexity or randomness of the frequency distribution.
+<br></br>
+
+![Fourier_set_83_heavy_row](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/Fourier_set_83_heavy_row.png)
+![Fourier_set_84_heavy_row](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/Fourier_set_84_heavy_row.png)
+<i>Figure 14: Visual Comparison of Heavy Rows - Sets 83 and 84 </i>
+
+These features can be highly informative for tasks such as activity recognition or anomaly detection, as they reveal characteristic frequency components associated with different activities or states.
+
+### Overlapping Windows:
+
+Overlapping windows is a common concern in time-series analysis that can lead to overfitting in subsequent modeling tasks. 
+
+```
+df_freq = df_freq.dropna()
+df_freq = df_freq.iloc[::2]
+```
+
+By dropping rows containing NA values and reducing overlap in the dataset, the simple code above helps mitigate the risk of model overfitting and enhances the generalizability of the clustering model.
+
+### Clustering Model:
+
+K-Means Clustering: An unsupervised learning model.
+
+The previously mentioned extracted features capture both temporal dynamics and frequency characteristics, laying a solid foundation for the clustering model to discern meaningful insights and patterns in the sensor data.
+
+
+
+
