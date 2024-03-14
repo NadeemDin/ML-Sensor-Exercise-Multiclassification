@@ -300,6 +300,10 @@ To detect outliers, we implement three different methods: interquartile range (I
 
 Opting for Chauvenet's criterion for outlier detection, we leverage its assumption of a normal distribution, which aligns well with our data characteristics. Additionally, it tends to flag fewer outliers, but those identified are more pertinent to our analysis.
 
+![norm_distribution](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/norm_distribution.png)
+<small><i>Figure 5: Exercise gyroscope data showing normal distribution characteristics</i></small>
+
+
 Chauvenet's criterion identifies outliers based on the assumption of a normal distribution, making it suitable for our sensor data analysis. We apply this method to each sensor's data columns, marking outliers and subsequently replacing them with NaN values. This approach ensures that the machine learning model isn't skewed by anomalous data points, leading to more robust and accurate predictions.
 
 Finally, we export the cleaned dataset with outliers removed, ready for further preprocessing and model development.
@@ -326,10 +330,10 @@ predictor_columns = list(df.columns[:6])
 Interpolation/Imputation Visualized:
 
 ![Set 35 gyr_y plot (before imputation)](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/Set%2035%20gyr_y%20plot%20(before%20imputation).png)
-<i>Figure 5: gyr_y data plot for set 35 Overhead Press, pre interpolation.</i>
+<small><i>Figure 6: gyr_y data plot for set 35 Overhead Press, pre interpolation.</i></small>
 
 ![Set 35 gyr_y plot (after imputation)](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/Set%2035%20gyr_y%20plot%20(after%20imputation).png)
-<i>Figure 6: gyr_y data plot for set 35 Overhead Press, post interpolation.</i>
+<small><i>Figure 7: gyr_y data plot for set 35 Overhead Press, post interpolation.</i></small>
 
 ### Calculating Set duration: 
 The duration of each exercise set is calculated to provide insights into the length of time spent on each exercise.
@@ -378,7 +382,7 @@ for col in predictor_columns:
 The code snippet provided is utilizing the LowPassFilter class from the DataTransformation module (`DataTransformation.py`) to perform the lowpass filtering operation on the accelerometer and gyroscope data.
 
 ![Low Pass Filter](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/Low_Pass_Filter.png)
-<i>Figure 7: Application of Butterworth Low Pass Filter.</i>
+<small><i>Figure 8: Application of Butterworth Low Pass Filter.</i></small>
 
 The code applies a Butterworth lowpass filter to the accelerometer and gyroscope data in order to remove high-frequency noise while preserving the underlying signal trends. 
 
@@ -410,7 +414,7 @@ plt.show()
 ```
 
 ![elbow method](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/elbow_method.png)
-<i>Figure 8: Plot identifies the optimal number of components as 3.</i>
+<small><i>Figure 9: Plot identifies the optimal number of components as 3.</i></small>
 
 ```
 df_pca = PCA.apply_pca(df_pca,predictor_columns,3)
@@ -425,13 +429,13 @@ subset[["pca_1", "pca_2", "pca_3"]].plot()
 
 This transformation allows for the representation of the data along orthogonal directions, facilitating efficient computation and visualization. 
 
-The transformed data is visualized in <i>Figure 9 and 10</i> to understand the patterns and structure captured by the principal components, aiding in further analysis and interpretation of the dataset.
+The transformed data is visualized in <i>Figure 10 and 11</i> to understand the patterns and structure captured by the principal components, aiding in further analysis and interpretation of the dataset.
 
 ![PCA](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/PCA.png)
-<i>Figure 9: Visualization of Principal Components for Set 35, Medium Overhead Press.</i>
+<small><i>Figure 10: Visualization of Principal Components for Set 35, Medium Overhead Press.</i></small>
 
 ![PCA Heavy Bench](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/PCA_Heavy_Bench.png)
-<i>Figure 10: Visualization of Principal Components for Set 40, Heavy Bench.</i>
+<small><i>Figure 11: Visualization of Principal Components for Set 40, Heavy Bench.</i></small>
 
 ### The Sum of Squares Attributes:
 
@@ -451,10 +455,10 @@ The sum of squares attributes involves computing the magnitude of acceleration (
 By computing these sums of squares attributes, we obtain scalar values representing the overall intensity of acceleration and angular velocity experienced by the sensor, irrespective of direction. These attributes provide a concise representation of the sensor data's dynamics, facilitating further analysis, visualization and feature extraction for machine learning tasks.
 
 ![SOS S35](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/SOS_S35.png)
-<i>Figure 11: Visualization of the magnitude of acceleration (`acc_r`) and angular velocity (`gyr_r`) vectors for Set 35, Medium Overhead Press.</i>
+<small><i>Figure 12: Visualization of the magnitude of acceleration (`acc_r`) and angular velocity (`gyr_r`) vectors for Set 35, Medium Overhead Press.</i></small>
 
 ![SOS S40](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/SOS_S40.png)
-<i>Figure 12: Visualization of the magnitude of acceleration (`acc_r`) and angular velocity (`gyr_r`) vectors for Set 40, Heavy Bench.</i>
+<small><i>Figure 13: Visualization of the magnitude of acceleration (`acc_r`) and angular velocity (`gyr_r`) vectors for Set 40, Heavy Bench.</i></small>
 
 ### Temporal Abstraction:
 
@@ -497,7 +501,7 @@ Finally, a subset of the dataset is chosen for visualization, plotting the origi
 
 ![temp medium row 90 acc y](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/temp_medium_row_90_acc_y.png)
 ![temp medium row 90 gyr y](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/temp_medium_row_90_gyr_y.png)
-<i>Figure 13: Temporal Trends in Sensor Measurements with Rolling Averages and Standard Deviations</i>
+<small><i>Figure 14: Temporal Trends in Sensor Measurements with Rolling Averages and Standard Deviations</i></small>
 
 ### Discrete Fourier Transformations:
 
@@ -520,7 +524,7 @@ By abstracting frequency-domain features such as maximum frequency, frequency-we
 
 ![Fourier_set_83_heavy_row](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/Fourier_set_83_heavy_row.png)
 ![Fourier_set_84_heavy_row](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/Fourier_set_84_heavy_row.png)
-<i>Figure 14: Visual Comparison of Heavy Rows - Sets 83 and 84 </i>
+<small><i>Figure 15: Visual Comparison of Heavy Rows - Sets 83 and 84 </i></small>
 
 These features can be highly informative for tasks such as activity recognition or anomaly detection, as they reveal characteristic frequency components associated with different activities or states.
 
@@ -537,10 +541,31 @@ By dropping rows containing NA values and reducing overlap in the dataset, the s
 
 ### Clustering Model:
 
-K-Means Clustering: An unsupervised learning model.
-
 The previously mentioned extracted features capture both temporal dynamics and frequency characteristics, laying a solid foundation for the clustering model to discern meaningful insights and patterns in the sensor data.
 
+Using the KMeans algorithm. Initially, it selects a subset of columns ("acc_x", "acc_y", "acc_z") from the dataset and evaluates the sum of squared distances for a range of cluster numbers (k values) using the elbow method. 
 
+![Kmeans_elbow_method_k5](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/Kmeans_elbow_method_k5.png)
+<small><i>Figure 16: The plot generated from the elbow method suggests an optimal k value of 5. </i></small>
 
+Next, the KMeans algorithm is applied with k=5 to cluster the data based on the selected subset of columns. The clusters are then visualized in a 3D scatter plot, where each cluster is represented by a distinct color.
 
+![cluster_plot](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/cluster_plot.png)
+<small><i>Figure 17: 3D scatter plot of accelerometer data vs cluster k value (0 to 4). </i></small>
+
+Additionally, its useful to compare the cluster plot to a plot of the original labels in the dataset. 
+
+![label_plot](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/label_plot.png)
+<small><i>Figure 18: 3D scatter plot of accelerometer data vs Exercise Labels. </i></small>
+
+The figures depict 3D scatter plots illustrating the clustering of sensor data points based on exercise labels. 
+
+In Figure 17, distinct clusters are visible, indicating that the K-means model with five clusters has successfully separated the data points. However, upon closer inspection in Figure 18, it becomes evident that the clustering is not perfect, as certain exercises, such as overhead press and bench press, as well as deadlift and row, are not completely separated. 
+
+This overlap can be attributed to the similarities in motion patterns between these exercises, particularly in terms of movement along similar axes. Additionally, the spread of data points not belonging to any defined cluster in Figure 17 aligns with the variation observed during rest intervals between exercise sets, as shown in Figure 18. 
+
+Overall, while the clustering demonstrates some effectiveness in distinguishing between exercises, further refinement may be necessary to improve the model's accuracy and precision.
+
+The final feature engineered datasaet is exported ready for further model development.
+
+see file: `data\interim\03_data_features.pkl`
