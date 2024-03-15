@@ -1,4 +1,4 @@
-# Utilising Machine Learning: Multiclassification of sensor data recorded during various exercises
+# Utilizing Machine Learning: Multiclassification of sensor data obtained through exercise.
 
 ## Overview
 This project aims to develop a Python-based excercise tracker/classfier using accelerometer and gyroscope data from a Metamotion sensor. The goal is to create a machine learning model capable of classifying various barbell exercises and counting repetitions using data obtained from the sensor.
@@ -18,6 +18,7 @@ The Metamotion sensor provides comprehensive data, including gyroscope, accelero
 4. [Data Visualization](#data-visualization)
 5. [Outlier Detection & Management](#outlier-detection--management)
 6. [Feature Engineering](#feature-engineering)
+7. [Predictive Modelling](#predictive-modelling)
 
 
 
@@ -564,8 +565,18 @@ In Figure 17, distinct clusters are visible, indicating that the K-means model w
 
 This overlap can be attributed to the similarities in motion patterns between these exercises, particularly in terms of movement along similar axes. Additionally, the spread of data points not belonging to any defined cluster in Figure 17 aligns with the variation observed during rest intervals between exercise sets, as shown in Figure 18. 
 
+Below, we present a similar comparison where the generated pca_1, pca_2, pca_3 values from our principal component analysis are utilized in conjunction with K-means to generate plots. In one plot, the legend corresponds to the k_number, while in another plot, it represents the exercise label.
+
+![pca_cluster_plot](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/pca_cluster_plot.png)
+<small><i>Figure 19: 3D scatter plot of pca data vs cluster k value (0 to 4). </i></small>
+
+![pla_label_plot](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/pca_label_plot.png)
+<small><i>Figure 20: 3D scatter plot of pca values vs Exercise Labels. </i></small>
+
 Overall, while the clustering demonstrates some effectiveness in distinguishing between exercises, further refinement may be necessary to improve the model's accuracy and precision.
 
 The final feature engineered datasaet is exported ready for further model development.
 
 see file: `data\interim\03_data_features.pkl`
+
+## Predictive Modelling:

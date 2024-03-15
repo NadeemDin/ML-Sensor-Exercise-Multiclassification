@@ -162,7 +162,7 @@ ws = int(2800 / 200)             # window size 2800ms / 200 (window size of 14 )
 fs = int(1000 / 200)              # sampling rate 
 
 # One Column.
-df_freq = FreqAbs.abstract_frequency(df_freq, ["acc_y"], ws, fs)
+# df_freq = FreqAbs.abstract_frequency(df_freq, ["acc_y"], ws, fs)
 
 ## Visualise results:
 subset = df_freq[df_freq["set"] == 84]
@@ -250,6 +250,31 @@ ax = fig.add_subplot(projection = "3d")
 for i, l in enumerate(df_cluster["label"].unique()):
     subset = df_cluster[df_cluster["label"] == l]
     ax.scatter(subset["acc_x"], subset["acc_y"], subset["acc_z"], label = l, color=palette[i])
+ax.set_xlabel("X-axis")
+ax.set_ylabel("Y-axis")
+ax.set_zlabel("Z-axis")
+plt.legend()
+plt.show()
+
+# pca clustering
+
+fig = plt.figure(figsize=(15,15))
+ax = fig.add_subplot(projection = "3d")
+for c in df_cluster["cluster"].unique():
+    subset = df_cluster[df_cluster["cluster"] == c]
+    ax.scatter(subset["pca_1"], subset["pca_2"], subset["pca_3"], label = c)
+ax.set_xlabel("X-axis")
+ax.set_ylabel("Y-axis")
+ax.set_zlabel("Z-axis")
+plt.legend()
+plt.show()
+
+# plot with exercise labels
+fig = plt.figure(figsize=(15,15))
+ax = fig.add_subplot(projection = "3d")
+for i, l in enumerate(df_cluster["label"].unique()):
+    subset = df_cluster[df_cluster["label"] == l]
+    ax.scatter(subset["pca_1"], subset["pca_2"], subset["pca_3"], label = l, color=palette[i])
 ax.set_xlabel("X-axis")
 ax.set_ylabel("Y-axis")
 ax.set_zlabel("Z-axis")
