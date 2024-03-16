@@ -1,13 +1,13 @@
 # Utilizing Machine Learning: Multiclassification of sensor data obtained through exercise.
 
 ## Overview
-This project aims to develop a Python-based excercise tracker/classfier using accelerometer and gyroscope data from a Metamotion sensor. The goal is to create a machine learning model capable of classifying various barbell exercises and counting repetitions using data obtained from the sensor.
+This project aims to develop a Machine Learning model to classify and label various barbell exercises using accelerometer and gyroscope data obtained using a Metamotion sensor. 
 
-The provided dataset, available in the `metamotion.zip` file ('data/raw'), contains gyroscope and accelerometer data for heavy and light barbell movements. Data is collected for all three axes for both gyroscopes and accelerometers, including rest data. It contains a weeks worth of data from various people all doing the same exercises.
-
-Once fully functional, this project could serve as the foundation for a versatile fitness app. Personal trainers could use it to monitor clients remotely, while individuals with compatible devices (e.g., Apple Watch) could track workouts effortlessly.
+Once fully functional, this project could serve as the foundation for a versatile fitness application where the users exercises are classified and recorded. Additionally a method of counting repetitions could also be implimented. 
 
 The Metamotion sensor provides comprehensive data, including gyroscope, accelerometer, magnetometer, sensor fusion, barometric pressure, and ambient light.
+
+We only require the raw accelerometer and gyroscope data.
 
 ![Metamotion Sensor](https://mbientlab.com/wp-content/uploads/2021/02/Board4-updated.png)
 
@@ -20,36 +20,35 @@ The Metamotion sensor provides comprehensive data, including gyroscope, accelero
 6. [Feature Engineering](#feature-engineering)
 7. [Predictive Modelling](#predictive-modelling)
 
-
-
 ## Data Collection
-Sensor data is collected during workouts to capture barbell movement and orientation, including rest periods. Data was collected across a period of one week by a number of participants.
+The provided dataset, available in the `metamotion.zip` file ('data/raw'), contains gyroscope and accelerometer data for heavy and light barbell movements. Data is collected for all three axes for both gyroscopes and accelerometers, including rest data. It contains a weeks worth of data from various participants all doing the same exercises with varying degrees of execution.
 
 its important to note that the gyroscope recorded data at a greater frequency than the accelerometer.
-
+```
 Accelerometer:    12.500HZ
-
 Gyroscope:        25.000Hz
+```
 
 ### Barbell Exercises
-- Barbell Bench Press
-- Barbell Back Squat
-- Barbell Overhead Press
-- Deadlift
-- Barbell Row
+- Bench (bench)
+- Squat (squat)
+- Barbell Overhead Press (OHP)
+- Deadlift (dead)
+- Barbell Row (row)
 
 ## Python Scripts
+### Primary Scripts
 - `make_dataset.py` : (`src/data`) - Contains code used to extract and transform the original raw data.
 - `visualize.py` : (`src/visualization`) - Includes code for generating various visualizations from the preprocessed sensor data.
 - `remove_outliers.py` : (`src/features`) - Implements outlier detection methods and removes outliers from the dataset.
 - `build_features.py` : (`src/features`) -  Implements feature engineering steps such as handling missing values, calculating set duration, applying a Butterworth lowpass filter, conducting principal component analysis (PCA), computing sum of squares attributes, and performing temporal abstraction.
+- `train_model.py` : (`src/model`) - Defines and trains predictive models using the selected machine learning algorithms to perform multiclass classification on the sensor data.
+
+### Supporting Modules
 - `DataTransformation.py` : (`src/features`) - Provides functions and classes for data transformation tasks such as low-pass filtering and principal component analysis.
 - `TemporalAbstraction.py` : (`src/features`) - Implements functions and classes for temporal abstraction tasks, facilitating the computation of rolling averages (means) and standard deviations for sensor measurements over specified windows.
 - `FrequencyAbstraction.py` : (`src/features`) - Performs Fourier transformations on the data to identify frequencies and filter noise, adding frequency-related features to the dataset for further analysis and modeling tasks.
-
-
-## Machine Learning Model
-We will be using supervised learning techniques, as we have both structured and unstructured data. The goal is to create a multiclass classification model to predict which exercise is being done or if the participant is resting. 
+- `LearningAlgorithms.py` : (`src/model`) - Contains implementations of various machine learning algorithms for classification tasks, including k-nearest neighbors, decision trees, random forest, support vector machines, and feedforward neural networks.
 
 ## Data Extraction & Transformation:  
 <i>filepath : `src\data\make_dataset.py`</i>
@@ -312,6 +311,9 @@ Finally, we export the cleaned dataset with outliers removed, ready for further 
 see file: `data\interim\02_outliers_removed_chauvenets.pkl`
 
 ## Feature engineering:
+
+filepath : `src\features\build_features.py`
+
 This section outlines the feature engineering pipeline used to preprocess the sensor data for exercise classification. The analysis involves various stages, including handling missing values, filtering, dimensionality reduction, and extracting relevant features.
 
 ### Dealing with missing values:
@@ -580,3 +582,153 @@ The final feature engineered datasaet is exported ready for further model develo
 see file: `data\interim\03_data_features.pkl`
 
 ## Predictive Modelling:
+
+filepath : `src\model\train_model.py`
+
+Exploration of feature selection, model selection, and hyperparameter tuning using grid search to identify the optimal combination leading to the highest classification accuracy.
+
+### Train-Test-Split:
+
+Reading `03_data_features.pkl` into a dataframe we then begin by creating a training and test sets using sklearn's train_test_split.
+
+```
+df_train = df.drop(["participant", "category", "set"], axis = 1)
+
+X = df_train.drop("label", axis=1)
+y = df_train["label"]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)
+```
+<small><i>Stratify parameter utilized for equal distribution of labels (Exercises).</i></small> 
+
+![TTS_distribution](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/TTS_distribution.png)
+<small><i>Figure 21: Distribution of data post Train-Test-Split with a test size of 25% of the total data. </i></small>
+
+### Feature Selection:
+
+Now we define our various feature sets which will be used to train and evaulate various models. testing models using a variety of different features will allow us to narrow down which features are most important for classification. 
+
+```
+basic_features = ["acc_x","acc_y","acc_z","gyr_x","gyr_y","gyr_z"]
+square_features = ["acc_r","gyr_r"]
+pca_features = ["pca_1","pca_2","pca_3"]
+time_features = [f for f in df_train.columns if "_temp_" in f]
+frequency_features = [f for f in df_train.columns if ("_freq" in f) or ("_pse" in f)]
+cluster_features = ["cluster"]
+
+feature_set_1 = list(set(basic_features))
+feature_set_2 = list(set(basic_features + square_features + pca_features))
+feature_set_3 = list(set(feature_set_2 + time_features))
+feature_set_4 = list(set(feature_set_3 + frequency_features + cluster_features))
+```
+
+We have a total of 116 features to consider.
+
+```
+basic_features: 6
+square_features: 2
+pca_features: 3
+time_features: 16
+frequency_features: 88
+cluster_features: 1
+```
+
+
+Before utilizing the above features;
+
+To give us some idea of what features could be most relevant, we implement forward selection, a method that iteratively selects the best features based on accuracy using a decision tree learner. We're looking for a maximum of 10 features.
+
+<b>Feedforward Neural Network</b>: A powerful model for learning complex patterns in data, with options for hyperparameter tuning such as hidden layer sizes, activation functions, and learning rates.
+
+```
+learn = ClassificationAlgorithms()
+max_features = 10
+
+selected_features, ordered_features, ordered_scores = learn.forward_selection(max_features, X_train, y_train)
+```
+
+This approach helps reduce the dimensionality of the dataset and improve model performance by focusing on the most relevant features.
+
+The forward selection returns the following 'selected_features':
+
+```
+selected_features = [
+    'pca_1',
+    'duration',
+    'acc_z_freq_0.0_Hz_ws_14',
+    'acc_y_temp_mean_ws_5',
+    'acc_x_freq_1.071_Hz_ws_14',
+    'gyr_x_freq_1.071_Hz_ws_14',
+    'acc_z_freq_1.786_Hz_ws_14',
+    'acc_x_freq_weighted',
+    'acc_z_temp_std_ws_5',
+    'acc_z_freq_weighted'
+    ]
+```
+Resulting in our possible feature sets to test against looking like:
+
+```
+possible_feature_sets = [
+    feature_set_1 ,
+    feature_set_2 ,
+    feature_set_3 ,
+    feature_set_4 ,
+    selected_features,
+    ]
+```
+## Model Selection:
+
+Using the LearningAlgorithms module we explore a variety of classification algorithms to build predictive models. For this project we use:
+
+<b>Feedforward Neural Network (NN)</b>: Employs multiple layers of nodes organized in a feedforward manner, allowing the network to learn complex patterns in the data by adjusting weights and biases during training. 
+
+<b>k-Nearest Neighbors (kNN)</b>: A simple yet effective algorithm that classifies data points based on the majority class among their nearest neighbors. The number of neighbors (k) can be optimized using grid search.
+
+<b>Decision Tree (DT)</b>: An interpretable model that partitions the feature space based on simple decision rules. Parameters like the minimum samples per leaf and the splitting criterion can be tuned to improve model performance.
+
+<b>Naive Bayes (NB)</b>: A probabilistic classifier based on Bayes' theorem with strong independence assumptions between features. It is simple and fast, suitable for large datasets.
+
+<b>Random Forest (RF)</b>: An ensemble learning method that trains multiple decision trees and combines their predictions to improve generalization performance. Hyperparameters such as the number of trees and minimum samples per leaf can be optimized.
+
+### Hyperparameter Tuning:
+
+For each model, we utilize grid search to tune hyperparameters and identify the optimal combination leading to the highest classification accuracy. 
+
+Grid search exhaustively searches through a specified parameter grid to find the best parameters for each model. This process helps optimize model performance and generalization ability.
+
+### Model evaluation:
+
+![model_feature_set_accuracy](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/model_feature_set_accuracy.png)
+<small><i>Figure 22: Visualisation of the accuracy of all models tested against the possible feature sets. </i></small>
+
+Referencing figure 22, we can observe how in almost all instances Feature_set_4 out perfoms all other features sets. NN and RF models seem to return the greatest accuracy for this feature set (>0.99).
+
+Now its no real suprise that the best performing feature set is the one which contains all of the features however its interesting to learn that our best performing models are the Neural Network and the Random Forest models. 
+
+Evaluating the Neural Network model which used feature_set_4 returns a model with an accuracy of 0.994829 and the following confusion matrix:
+
+![CM_NN_0994829](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/CM_NN_0994829.png)
+<small><i>Figure 23: Confusion Matrix for the Neural Network model,showing a small discrepency in classifying OHP and deadlifts. </i></small>
+
+#### Further Evaluation:
+
+To evaluate the Neural Network model further, a new Train Test Split (TTS) was performed where we would exclude the data collected by Participant A from the training set but use only Participant A data in the testing sets.
+
+
+![PA_TTS](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/PA_TTS.png)
+<small><i>Figure 24: Distribution of data for Participant A Train Test Split </i></small>
+
+
+Evaluating the model again would return an accuracy of 0.992260 and the following confusion matrix:
+
+![PA_CM_NN_0992260](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/PA_CM_NN_0992260.png)
+<small><i>Figure 25: Confusion Matrix for the Neural Network model,showing an increased discrepency in classifying OHP and deadlifts when compared to Figure 23. </i></small>
+
+Furthermore the Random Forest model was evaluated using the same TTS as above, resulting in an accuracy score of 0.953560 and the following confusion matrix:
+
+![PA_CM_RF_0.953560](https://raw.githubusercontent.com/NadeemDin/ML-Sensor-Exercise-Multiclassification/main/reports/figures/PA_CM_RF_0.953560.png)
+<small><i>Figure 26: Confusion Matrix for the Random Forest model,showing a significantly increased discrepency in classifying OHP when compared to previous confusion matricies. </i></small>
+
+The accuracy is slightly reduced from the accuracy visualised in figure 22 due to the stochastic nature of the algorithm used. 
+
+Overall, the combination of feature selection, model selection, and hyperparameter tuning allows us to build robust predictive models for multiclass classification tasks, providing valuable insights into exercise/human activity recognition based on sensor data.
